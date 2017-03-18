@@ -23,24 +23,23 @@ tau = 1 ;
 
 % this loops through the entire recording. 
 % TODO: change it so that it takes incoming data one by one 
-
-% x=xx(1)+1; % fix MATLAB's indexing starting with 1 
-% y=yy(1)+1; 
-% deltaT(x,y) = ts(1);
-% S(x,y) = exp(deltaT(x,y)) ;
-% S(x,y) = exp( (-ts(i)+ deltaT(x,y))/tau )  ;
    
 for i = 1:n
     
    x=xx(i)+1; % fix MATLAB's indexing starting with 1 
    y=yy(i)+1; 
    ts_current = ts(i); 
+   
+   if P(i)==1 % for ON polarity events only 
+   
    deltaT = deltaT + (ts_current - ts_prev);
    ts_prev=ts_current; 
    deltaT(x,y)=0; 
    S= exp( -(deltaT)/tau )  ; 
- 
-    % for a location (x,y), take the current time at THAT location minus previous time at that location  
+  % for a location (x,y), take the current time at THAT location minus previous time at that location  
+  
+   end
+   
        
 end
 
