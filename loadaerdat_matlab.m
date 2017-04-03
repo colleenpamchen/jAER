@@ -1,5 +1,6 @@
 function [CIN]=loadaerdat_matlab(file)
-% USE THIS GUY!!!!!!!!!!!!!!!!!!!! 
+% USE THIS !!!!!!!!!!!!!!!!!!!! 
+
 % loads events from a jAER .dat/.aedat file.
 % allAddr are int16 raw addresses.
 % allTs are int32 timestamps (1 us tick).
