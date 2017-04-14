@@ -18,18 +18,18 @@ y0 = CIN(:,5);
 xy0 = CIN(:,4:5); 
 P = CIN(:,6);
     
-%%
+%% display the data using 3D scatterplot 
 for k=1:size(P,1)
     if P(k) == -1
        P(k) = 0;
     end
 end
 logical_pol = logical(P);
-
+% ON polarity events 
 x_incr = x0(logical_pol);
 y_incr = y0(logical_pol);
 ts_incr = ts(logical_pol);
-
+% OFF polarity events 
 x_decr = x0(~logical_pol);
 y_decr = y0(~logical_pol);
 ts_decr = ts(~logical_pol);
@@ -39,10 +39,11 @@ res_y = 128;
 
 % epg (events per graph) = it is associated with the scatterd mode. It
 % represents the number of events displayed in each image. Default: 20000 
-epg = 20000;
+% epg = 20000;
+epg = 50000;
 
-
-for i=ts(1): epg :ts(end)
+% for i=ts(1): epg :ts(end)
+for i=ts(5000): epg :ts(10000)
     figure; 
     %it creates a mask to identify the events with polarity = 1, in the time interval we are going to represent
     incr_mask = ts_incr >= i & ts_incr < i + epg;
@@ -59,32 +60,87 @@ for i=ts(1): epg :ts(end)
         xlabel(strx);
         ylabel('Timestamps [\mus]');
         strz = sprintf('Y Pixel [0 %f]',res_y);
-        zlabel(strz);
-    
+        zlabel(strz);   
 end
 
-    
-
-%%
-
-% Events = zeros(n,4);
+%% video visualizing the events 
 Events = [x0,y0,P,ts];
 visualize_events(Events); 
 
+%% define local neighborhood U [ux, uy] 
 % center of the original coordinate system (128/2) = 64
 coord_mid = 64;
 R = 2 ; 
+ux = coord_mid-R : coord_mid+R ; 
+uy = coord_mid-R : coord_mid+R ; 
+% [ {62:66}  {62:66} ] 
+x1=x0+1;
+y1=y0+1;
+xmask = x1 >= 62 & x1 <= 66 ;
+ymask = y1 >= 62 & y1 <= 66 ;
 
-[64-2 , 64+2] 
+%% Build time surfaces for ON / OFF events 
+% ON polarity events 
+Son = nan(128);
+% SON = zeros(128); 
+ONS=[]; 
+deltaTon = zeros(128);
+ts_prev=0; 
+tau = 20000 ;
+x = x_incr+1;
+y = y_incr+1;
+for i = 1:length(ts_incr)/1.25
+ts_current = ts_incr(i) ; 
+deltaTon = deltaTon + (ts_current - ts_prev) ; 
+ts_prev = ts_current;
+deltaTon( x(i), y(i) ) = 0;
+Son = exp( -(deltaTon)/tau )  ;  
+ONS(:,:,i) = Son ;
+end
 
-xmask = ;
-ymask = ;
+figure
+surf(Son) 
+
+figure 
+contour(Son) 
+
+% play these in a movie. convert events into time. 
+
+% OFF polarity events 
+Soff = nan(128);
+% SOFF = zeros(128); 
+OFFS=[]; 
+deltaToff = zeros(128);
+ts_prev=0; 
+tau = 20000 ;
+x = x_decr+1;
+y = y_decr+1;
+for i = 1:length(ts_decr)/1.25
+ts_current = ts_decr(i) ; 
+deltaToff = deltaToff + (ts_current - ts_prev) ; 
+ts_prev = ts_current;
+deltaToff( x(i), y(i) ) = 0;
+Soff = exp( -(deltaToff)/tau )  ;  
+OFFS(:,:,i) = Soff ;
+end
+
+figure
+surf(Soff) 
+
+figure 
+contour(Soff) 
 
 
 
+
+
+
+
+
+%%
 Son = nan(128);
 Soff = nan(128);
-deltaT = zeros(128);
+deltaTon = zeros(128);
 ts_prev=0; 
 tau = 20000 ;
 % tau = 50000 ; % from paper: 50 milliseconds, convert this into microseconds. 
@@ -95,16 +151,19 @@ for i = 1:n
    x=xx(i)+1; % fix MATLAB's indexing starting with 1 
    y=yy(i)+1; 
    ts_current = ts(i); 
+  
    
-   if P(i)==1 % for ON polarity events only 
-       deltaT = deltaT + (ts_current - ts_prev);
+   % for ON polarity events only 
+   if P(i)==1 
+       deltaTon = deltaTon + (ts_current - ts_prev);
        ts_prev = ts_current; 
-       deltaT(x,y)=0; 
-       Son = exp( -(deltaT)/tau )  ; 
+       deltaTon(x,y)=0; 
+       Son = exp( -(deltaTon)/tau )  ; 
       % for a location (x,y), take the current time at THAT location minus previous time at that location  
    end  
    
-%    if P(i)==-1 % for OFF polarity events only 
+   % for OFF polarity events only
+%    if P(i)==0  
 %        deltaT = deltaT + (ts_current - ts_prev);
 %        ts_prev=ts_current; 
 %        deltaT(x,y)=0; 
@@ -132,10 +191,6 @@ surf(Son)
 % [ x-position ; y-position ; polarity ; continuous timestamp (microseconds) ]
 %
 % This parameter can also be a string containing the path to a file containing the event data which will be loaded.
-
-
-
-
 
 
 
