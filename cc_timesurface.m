@@ -79,56 +79,62 @@ y1=y0+1;
 xmask = x1 >= 62 & x1 <= 66 ;
 ymask = y1 >= 62 & y1 <= 66 ;
 
+% TODO: apply the spatial mask to sensor data
+% 
+
 %% Build time surfaces for ON / OFF events 
 % ON polarity events 
-Son = nan(128);
-% SON = zeros(128); 
-ONS=[]; 
-deltaTon = zeros(128);
-ts_prev=0; 
-tau = 20000 ;
-x = x_incr+1;
-y = y_incr+1;
-for i = 1:length(ts_incr)/1.25
-ts_current = ts_incr(i) ; 
-deltaTon = deltaTon + (ts_current - ts_prev) ; 
-ts_prev = ts_current;
-deltaTon( x(i), y(i) ) = 0;
-Son = exp( -(deltaTon)/tau )  ;  
-ONS(:,:,i) = Son ;
-end
-
-figure
-surf(Son) 
-
-figure 
-contour(Son) 
-
-% play these in a movie. convert events into time. 
+    Son = nan(128);
+    % SON = zeros(128); 
+    ONS=[]; 
+    deltaTon = zeros(128);
+    ts_prev=0; 
+    tau = 20000 ;
+    x = x_incr+1;
+    y = y_incr+1;
+    for i = 1:length(ts_incr)/1.25
+    ts_current = ts_incr(i) ; 
+    deltaTon = deltaTon + (ts_current - ts_prev) ; 
+    ts_prev = ts_current;
+    deltaTon( x(i), y(i) ) = 0;
+    Son = exp( -(deltaTon)/tau )  ;  
+    ONS(:,:,i) = Son ;
+    end
 
 % OFF polarity events 
-Soff = nan(128);
-% SOFF = zeros(128); 
-OFFS=[]; 
-deltaToff = zeros(128);
-ts_prev=0; 
-tau = 20000 ;
-x = x_decr+1;
-y = y_decr+1;
-for i = 1:length(ts_decr)/1.25
-ts_current = ts_decr(i) ; 
-deltaToff = deltaToff + (ts_current - ts_prev) ; 
-ts_prev = ts_current;
-deltaToff( x(i), y(i) ) = 0;
-Soff = exp( -(deltaToff)/tau )  ;  
-OFFS(:,:,i) = Soff ;
-end
+    Soff = nan(128);
+    % SOFF = zeros(128); 
+    OFFS=[]; 
+    deltaToff = zeros(128);
+    ts_prev=0; 
+    tau = 20000 ;
+    x = x_decr+1;
+    y = y_decr+1;
+    for i = 1:length(ts_decr)/1.25
+    ts_current = ts_decr(i) ; 
+    deltaToff = deltaToff + (ts_current - ts_prev) ; 
+    ts_prev = ts_current;
+    deltaToff( x(i), y(i) ) = 0;
+    Soff = exp( -(deltaToff)/tau )  ;  
+    OFFS(:,:,i) = Soff ;
+    end
 
+% Display the surface and contounrs for ON and OFF events 
+e=1050; % event snapshot 
 figure
-surf(Soff) 
+subplot(2,2,1)
+surf(ONS(:,:,e) )
+subplot(2,2,2)  
+contour(ONS(:,:,e)) 
+subplot(2,2,3)
+surf(OFFS(:,:,e) )
+subplot(2,2,4)  
+contour(OFFS(:,:,e)) 
 
-figure 
-contour(Soff) 
+% TODO: visualization. play these in a movie. convert events into time.
+
+
+%% PROTOTYPE construction using nearest neighbor and distance metrics 
 
 
 
@@ -136,8 +142,11 @@ contour(Soff)
 
 
 
+%% ... SCRATCH code ....
 
-%%
+
+% TODO: change it so that it takes incoming data one by one 
+
 Son = nan(128);
 Soff = nan(128);
 deltaTon = zeros(128);
@@ -145,7 +154,7 @@ ts_prev=0;
 tau = 20000 ;
 % tau = 50000 ; % from paper: 50 milliseconds, convert this into microseconds. 
 % this loops through the entire recording. 
-% TODO: change it so that it takes incoming data one by one 
+
 for i = 1:n
     
    x=xx(i)+1; % fix MATLAB's indexing starting with 1 
@@ -191,25 +200,6 @@ surf(Son)
 % [ x-position ; y-position ; polarity ; continuous timestamp (microseconds) ]
 %
 % This parameter can also be a string containing the path to a file containing the event data which will be loaded.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 % This function should take the following arguments: Xt,Yt,tau
