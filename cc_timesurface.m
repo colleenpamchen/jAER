@@ -120,25 +120,87 @@ ymask = y1 >= 62 & y1 <= 66 ;
     end
 
 % Display the surface and contounrs for ON and OFF events 
-e=1050; % event snapshot 
+e=2050; % event snapshot 
 figure
 subplot(2,2,1)
 surf(ONS(:,:,e) )
 subplot(2,2,2)  
 contour(ONS(:,:,e)) 
+title('ON events')
 subplot(2,2,3)
 surf(OFFS(:,:,e) )
 subplot(2,2,4)  
 contour(OFFS(:,:,e)) 
+title('OFF events')
 
 % TODO: visualization. play these in a movie. convert events into time.
 
 
 %% PROTOTYPE construction using nearest neighbor and distance metrics 
+% N = 100; 
+Cidx=[10:10:2049];
+npixels= 128*128;
+
+% ONS(:,:,N() ) 
+% OFFS(:,:,N() )
+
+C_inion = reshape( permute( ONS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+C_inioff = reshape( permute( OFFS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+
+% C_ON=[];
+% C_OFF=[];
+
+% ON polarity events loop
+% for i=1:size(ONS,3)
+for i=999:10:1999
+%     i=1050;
+    test_on_event = reshape(ONS(:,:,i),[1,npixels]);
+    D_on = pdist2(C_inion,test_on_event); 
+    [val,idx]=sort(D_on);
+    C = C_inion(idx(1),:); % the closest neighbor 
+    c=reshape(C,[128,128,1]); 
+       
+    % UPDATE RULE :
+    
+    
+    
+figure
+subplot(1,2,1)
+contour(ONS(:,:,i) )
+title('test')
+subplot(1,2,2)  
+contour(c) 
+title('PROTOTYPE|train')
+% subplot(2,2,3)
+% surf(OFFS(:,:,e) )
+% subplot(2,2,4)  
+% contour(OFFS(:,:,e)) 
+
+end
 
 
+%% OFF polarity events loop
+% for i=1:size(OFFS,3)
+for i=999:10:1999  
+   
+    i=1050;
+    test_off_event = reshape(OFFS(:,:,i),[1,npixels]);
+    D_off = pdist2(C_inioff,test_off_event); 
+    [val,idx]=sort(D_off);
+    C = C_inioff(idx(1),:); % the closest neighbor 
+    c=reshape(C,[128,128,1]); 
+       
+    % UPDATE RULE :
+    
+figure
+subplot(1,2,1)
+contour(OFFS(:,:,i) )
+title('test')
+subplot(1,2,2)  
+contour(c) 
+title('PROTOTYPE|train')
 
-
+end
 
 
 
