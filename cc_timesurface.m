@@ -141,11 +141,11 @@ title('OFF events')
 Cidx=[10:10:2049];
 npixels= 128*128;
 
-% ONS(:,:,N() ) 
-% OFFS(:,:,N() )
-
 C_inion = reshape( permute( ONS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
-C_inioff = reshape( permute( OFFS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+
+pk = 0; 
+alpha = 0.01/ (1+ (pk/20000) );
+beta = ; % the magnitude between the protoype and the surface
 
 % C_ON=[];
 % C_OFF=[];
@@ -163,14 +163,6 @@ for i=999:10:1999
     % UPDATE RULE :
     
     
-    
-figure
-subplot(1,2,1)
-contour(ONS(:,:,i) )
-title('test')
-subplot(1,2,2)  
-contour(c) 
-title('PROTOTYPE|train')
 % subplot(2,2,3)
 % surf(OFFS(:,:,e) )
 % subplot(2,2,4)  
@@ -178,9 +170,20 @@ title('PROTOTYPE|train')
 
 end
 
+figure
+subplot(1,2,1)
+contour(ONS(:,:,i) )
+title('test')
+subplot(1,2,2)  
+contour(c) 
+title('PROTOTYPE|train')
+
 
 %% OFF polarity events loop
 % for i=1:size(OFFS,3)
+
+C_inioff = reshape( permute( OFFS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+
 for i=999:10:1999  
    
     i=1050;
@@ -192,6 +195,9 @@ for i=999:10:1999
        
     % UPDATE RULE :
     
+    
+end
+
 figure
 subplot(1,2,1)
 contour(OFFS(:,:,i) )
@@ -199,9 +205,6 @@ title('test')
 subplot(1,2,2)  
 contour(c) 
 title('PROTOTYPE|train')
-
-end
-
 
 
 %% ... SCRATCH code ....
