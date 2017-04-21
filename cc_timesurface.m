@@ -137,65 +137,102 @@ title('OFF events')
 
 
 %% PROTOTYPE construction using nearest neighbor and distance metrics 
-% N = 100; 
-Cidx=[10:10:2049];
-npixels= 128*128;
+% theta = acos(dot(x,y)/(norm(x,2)*norm(y,2)));
+% this is calculating the similarity between the two surfaces in 
+% terms of their degree orientation. so if they are two parallel lines, 
+% they'll have a value of 1, if they are orthogonal/perpendicular, they 
+% have value of 0. this is then multiplied to the prototype and subtracted 
+% from the surface as the "additive difference" between the incoming event 
+% surface and the prototype 'class' it belongs to. this term should be a scalar
+% beta = dot(Ck,Si) / (norm(Ck)*norm(Si)) ;  
+% beta = 1 - pdist([Ck;Si],'cosine') ;
 
-C_inion = reshape( permute( ONS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
-
+Cidx=[10:100:1049]; % N=11 
+npixels= 128*128; 
+Cn = reshape( permute( ONS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+C = zeros(size(Cn));
 pk = 0; 
-alpha = 0.01/ (1+ (pk/20000) );
-beta = ; % the magnitude between the protoype and the surface
-
-% C_ON=[];
-% C_OFF=[];
+beta = -1;
 
 % ON polarity events loop
-% for i=1:size(ONS,3)
-for i=999:10:1999
-%     i=1050;
-    test_on_event = reshape(ONS(:,:,i),[1,npixels]);
-    D_on = pdist2(C_inion,test_on_event); 
-    [val,idx]=sort(D_on);
-    C = C_inion(idx(1),:); % the closest neighbor 
-    c=reshape(C,[128,128,1]); 
-       
-    % UPDATE RULE :
-    
-    
-% subplot(2,2,3)
-% surf(OFFS(:,:,e) )
-% subplot(2,2,4)  
-% contour(OFFS(:,:,e)) 
+for i=1:800:size(ONS,3)
+% for i=999:10:1999
 
-end
+    test_on_event = reshape(ONS(:,:,i),[1,npixels]); % Si 
+    D_on = pdist2(Cn, test_on_event); 
+        [val,idx]=sort(D_on);
+    %  VECTORIZEd data 
+    Ck = Cn(idx(1),:); % Ck: the closest CLUSTER center   
+    Si = test_on_event; % incoming event Surface 
+   
+    % UPDATE RULE :
+    alpha = 0.01 / (1+ (pk/20000) );
+    beta = dot(Ck,Si) / (norm(Ck)*norm(Si)) ;  % beta = 1 - pdist([Ck;Si],'cosine') ;
+    
+    Ck = Ck + alpha.*(Si - beta.*Ck) ; 
+    pk=pk+1; 
+
+    C(idx(1),:) = Ck; 
+    C=reshape(C,[length(Cidx),128,128]);
+     
+    idx(1)
 
 figure
 subplot(1,2,1)
 contour(ONS(:,:,i) )
 title('test')
 subplot(1,2,2)  
-contour(c) 
-title('PROTOTYPE|train')
+contour( squeeze(C(idx(1),:,:) ) ) 
+title( sprintf('PROTOTYPE|train %d', idx(1)) )
+
+end
+
+% figure
+% subplot(1,2,1)
+% contour(ONS(:,:,i) )
+% title('test')
+% subplot(1,2,2)  
+% contour( squeeze(C(idx(1),:,:) ) ) 
+% title( sprintf('PROTOTYPE|train %d', idx(1)) )
+
 
 
 %% OFF polarity events loop
-% for i=1:size(OFFS,3)
 
-C_inioff = reshape( permute( OFFS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+Cidx=[10:100:1049]; % N=11 
+npixels = 128*128; % 16384
+Cn = reshape( permute( OFFS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+C = zeros(size(Cn));
+pk = 0; 
+beta = -1;  
 
-for i=999:10:1999  
+for i=1:800:size(OFFS,3)
+% for i=999:10:1999  
    
-    i=1050;
     test_off_event = reshape(OFFS(:,:,i),[1,npixels]);
-    D_off = pdist2(C_inioff,test_off_event); 
-    [val,idx]=sort(D_off);
-    C = C_inioff(idx(1),:); % the closest neighbor 
-    c=reshape(C,[128,128,1]); 
+    D_off = pdist2(Cn,test_off_event); 
+        [val,idx]=sort(D_off);
+    Ck = Cn(idx(1),:); % Ck: the closest CLUSTER center   
+    Si = test_off_event; % incoming event Surface 
        
     % UPDATE RULE :
+    alpha = 0.01 / (1+ (pk/20000) );
+    beta = dot(Ck,Si) / (norm(Ck)*norm(Si)) ;  % beta = 1 - pdist([Ck;Si],'cosine') ;
     
-    
+    Ck = Ck + alpha.*(Si - beta.*Ck) ; 
+    pk=pk+1; 
+
+    C(idx(1),:) = Ck; 
+    C=reshape(C,[length(Cidx),128,128]);
+     
+    idx(1)
+% figure
+% subplot(1,2,1)
+% contour(OFFS(:,:,i) )
+% title('test')
+% subplot(1,2,2)  
+% contour( squeeze(C(idx(1),:,:) ) ) 
+% title('PROTOTYPE|train') 
 end
 
 figure
@@ -203,78 +240,46 @@ subplot(1,2,1)
 contour(OFFS(:,:,i) )
 title('test')
 subplot(1,2,2)  
-contour(c) 
-title('PROTOTYPE|train')
+contour( squeeze(C(idx(1),:,:) ) ) 
+title( sprintf('PROTOTYPE|train %d', idx(1)) )
+
+%%
+figure
+subplot(6,2,1)
+contour( squeeze(C(1,:,:) ) ) 
+title( sprintf('PROTOTYPE 1' ))
+subplot(6,2,2)
+contour( squeeze(C(2,:,:) ) ) 
+title( sprintf('PROTOTYPE 2' ))
+subplot(6,2,3)
+contour( squeeze(C(3,:,:) ) ) 
+title( sprintf('PROTOTYPE 3'))
+subplot(6,2,4)
+contour( squeeze(C(4,:,:) ) ) 
+title( sprintf('PROTOTYPE 4' ))
+subplot(6,2,5)
+contour( squeeze(C(5,:,:) ) ) 
+title( sprintf('PROTOTYPE 5' ))
+subplot(6,2,6)
+contour( squeeze(C(6,:,:) ) ) 
+title( sprintf('PROTOTYPE 6' ))
+subplot(6,2,7)
+contour( squeeze(C(7,:,:) ) ) 
+title( sprintf('PROTOTYPE 7' ))
+subplot(6,2,8)
+contour( squeeze(C(8,:,:) ) ) 
+title( sprintf('PROTOTYPE 8' ))
+subplot(6,2,9)
+contour( squeeze(C(9,:,:) ) ) 
+title( sprintf('PROTOTYPE 9' ))
+subplot(6,2,10)
+contour( squeeze(C(10,:,:) ) ) 
+title( sprintf('PROTOTYPE 10' ))
+subplot(6,2,11)
+contour( squeeze(C(11,:,:) ) ) 
+title( sprintf('PROTOTYPE|train 11' ))
 
 
 %% ... SCRATCH code ....
-
-
 % TODO: change it so that it takes incoming data one by one 
 
-Son = nan(128);
-Soff = nan(128);
-deltaTon = zeros(128);
-ts_prev=0; 
-tau = 20000 ;
-% tau = 50000 ; % from paper: 50 milliseconds, convert this into microseconds. 
-% this loops through the entire recording. 
-
-for i = 1:n
-    
-   x=xx(i)+1; % fix MATLAB's indexing starting with 1 
-   y=yy(i)+1; 
-   ts_current = ts(i); 
-  
-   
-   % for ON polarity events only 
-   if P(i)==1 
-       deltaTon = deltaTon + (ts_current - ts_prev);
-       ts_prev = ts_current; 
-       deltaTon(x,y)=0; 
-       Son = exp( -(deltaTon)/tau )  ; 
-      % for a location (x,y), take the current time at THAT location minus previous time at that location  
-   end  
-   
-   % for OFF polarity events only
-%    if P(i)==0  
-%        deltaT = deltaT + (ts_current - ts_prev);
-%        ts_prev=ts_current; 
-%        deltaT(x,y)=0; 
-%        Soff= exp( -(deltaT)/tau )  ; 
-%       % for a location (x,y), take the current time at THAT location minus previous time at that location  
-%    end 
-
-%    imagesc(Son)
-   surf(Son)
-   pause(1/2)
-
-   
-end
-
-surf(Son) 
-
-
-% Input Parameters:
-%
-% "Events" :
-%
-% Matrix containing the event data. Each line should represent one event and the events should be ordered by time. The 
-% timestamp needs to be a continuous timestamp. Data format for one line:
-% 
-% [ x-position ; y-position ; polarity ; continuous timestamp (microseconds) ]
-%
-% This parameter can also be a string containing the path to a file containing the event data which will be loaded.
-
-
-% This function should take the following arguments: Xt,Yt,tau
-% 
-% Xt is a 2-D array of spatial locations from a single polarity (ON/OFF) channel in the DAVIS camera.  
-% Yt is the output of the function from the previous timestep.  
-% tau is a system parameter that will determine the how the filter shapes its output over time. 
-% 
-% It should provide the following outputs: Y(t+1)
-% 
-% Y(t+1) is the result of combining Xt with Yt.  
-% I believe if tau = 1, then Y(t+1) = (Xt + Yt)/2.... i.e. the time-average of inputs.  
-% To produce Y(t+1) for arbitrary values of tau, use the function Benosman et al. refer to as S(x,y,t)
