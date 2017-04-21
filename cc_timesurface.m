@@ -18,7 +18,7 @@ y0 = CIN(:,5);
 xy0 = CIN(:,4:5); 
 P = CIN(:,6);
     
-%% display the data using 3D scatterplot 
+%% Truncate video 
 for k=1:size(P,1)
     if P(k) == -1
        P(k) = 0;
@@ -37,11 +37,22 @@ ts_decr = ts(~logical_pol);
 res_x = 128;
 res_y = 128;
 
+idxstart = 800 ;
+idxend = 125000 ;
+
+%% video visualizing the events 
+Events = [x0,y0,P,ts];
+visualize_events(Events); 
+
+%% TRUNCATED video 
+Events = [x0(idxstart:idxend),y0(idxstart:idxend),P(idxstart:idxend),ts(idxstart:idxend)];
+visualize_events(Events); 
+
+%% display the data using 3D scatterplot
 % epg (events per graph) = it is associated with the scatterd mode. It
 % represents the number of events displayed in each image. Default: 20000 
 % epg = 20000;
 epg = 50000;
-
 % for i=ts(1): epg :ts(end)
 for i=ts(5000): epg :ts(10000)
     figure; 
@@ -63,10 +74,6 @@ for i=ts(5000): epg :ts(10000)
         zlabel(strz);   
 end
 
-%% video visualizing the events 
-Events = [x0,y0,P,ts];
-visualize_events(Events); 
-
 %% define local neighborhood U [ux, uy] 
 % center of the original coordinate system (128/2) = 64
 coord_mid = 64;
@@ -80,9 +87,9 @@ xmask = x1 >= 62 & x1 <= 66 ;
 ymask = y1 >= 62 & y1 <= 66 ;
 
 % TODO: apply the spatial mask to sensor data
-% 
 
 %% Build time surfaces for ON / OFF events 
+
 % ON polarity events 
     Son = nan(128);
     % SON = zeros(128); 
@@ -92,7 +99,8 @@ ymask = y1 >= 62 & y1 <= 66 ;
     tau = 20000 ;
     x = x_incr+1;
     y = y_incr+1;
-    for i = 1:length(ts_incr)/1.25
+    
+    for i = idxstart:ts_incr(end)  %length(ts_incr)/1.25
     ts_current = ts_incr(i) ; 
     deltaTon = deltaTon + (ts_current - ts_prev) ; 
     ts_prev = ts_current;
@@ -110,7 +118,8 @@ ymask = y1 >= 62 & y1 <= 66 ;
     tau = 20000 ;
     x = x_decr+1;
     y = y_decr+1;
-    for i = 1:length(ts_decr)/1.25
+    
+    for i = idxstart:ts_decr(end) %length(ts_decr)/1.25
     ts_current = ts_decr(i) ; 
     deltaToff = deltaToff + (ts_current - ts_prev) ; 
     ts_prev = ts_current;
@@ -150,12 +159,12 @@ title('OFF events')
 Cidx=[10:100:1049]; % N=11 
 npixels= 128*128; 
 Cn = reshape( permute( ONS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
-C = zeros(size(Cn));
+CON = zeros(size(Cn));
 pk = 0; 
 beta = -1;
 
 % ON polarity events loop
-for i=1:800:size(ONS,3)
+for i=idxstart:idxend
 % for i=999:10:1999
 
     test_on_event = reshape(ONS(:,:,i),[1,npixels]); % Si 
@@ -172,21 +181,11 @@ for i=1:800:size(ONS,3)
     Ck = Ck + alpha.*(Si - beta.*Ck) ; 
     pk=pk+1; 
 
-    C(idx(1),:) = Ck; 
-    C=reshape(C,[length(Cidx),128,128]);
+    CON(idx(1),:) = Ck; 
+    CON=reshape(CON,[length(Cidx),128,128]);
      
-    idx(1)
-
-figure
-subplot(1,2,1)
-contour(ONS(:,:,i) )
-title('test')
-subplot(1,2,2)  
-contour( squeeze(C(idx(1),:,:) ) ) 
-title( sprintf('PROTOTYPE|train %d', idx(1)) )
-
-end
-
+   
+%  idx(1)
 % figure
 % subplot(1,2,1)
 % contour(ONS(:,:,i) )
@@ -195,6 +194,16 @@ end
 % contour( squeeze(C(idx(1),:,:) ) ) 
 % title( sprintf('PROTOTYPE|train %d', idx(1)) )
 
+end
+
+figure
+subplot(1,2,1)
+contour(ONS(:,:,i) )
+title('test')
+subplot(1,2,2)  
+contour( squeeze(CON(idx(1),:,:) ) ) 
+title( sprintf('PROTOTYPE|train %d', idx(1)) )
+
 
 
 %% OFF polarity events loop
@@ -202,12 +211,12 @@ end
 Cidx=[10:100:1049]; % N=11 
 npixels = 128*128; % 16384
 Cn = reshape( permute( OFFS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
-C = zeros(size(Cn));
+COFF = zeros(size(Cn));
 pk = 0; 
 beta = -1;  
 
-for i=1:800:size(OFFS,3)
-% for i=999:10:1999  
+for i=idxstart:idxend
+ 
    
     test_off_event = reshape(OFFS(:,:,i),[1,npixels]);
     D_off = pdist2(Cn,test_off_event); 
@@ -222,8 +231,8 @@ for i=1:800:size(OFFS,3)
     Ck = Ck + alpha.*(Si - beta.*Ck) ; 
     pk=pk+1; 
 
-    C(idx(1),:) = Ck; 
-    C=reshape(C,[length(Cidx),128,128]);
+    COFF(idx(1),:) = Ck; 
+    COFF=reshape(COFF,[length(Cidx),128,128]);
      
     idx(1)
 % figure
@@ -240,10 +249,46 @@ subplot(1,2,1)
 contour(OFFS(:,:,i) )
 title('test')
 subplot(1,2,2)  
-contour( squeeze(C(idx(1),:,:) ) ) 
+contour( squeeze(COFF(idx(1),:,:) ) ) 
 title( sprintf('PROTOTYPE|train %d', idx(1)) )
 
-%%
+%% View the prototype : ON 
+figure
+subplot(6,2,1)
+contour( squeeze(CON(1,:,:) ) ) 
+title( sprintf('PROTOTYPE 1' ))
+subplot(6,2,2)
+contour( squeeze(CON(2,:,:) ) ) 
+title( sprintf('PROTOTYPE 2' ))
+subplot(6,2,3)
+contour( squeeze(CON(3,:,:) ) ) 
+title( sprintf('PROTOTYPE 3'))
+subplot(6,2,4)
+contour( squeeze(CON(4,:,:) ) ) 
+title( sprintf('PROTOTYPE 4' ))
+subplot(6,2,5)
+contour( squeeze(CON(5,:,:) ) ) 
+title( sprintf('PROTOTYPE 5' ))
+subplot(6,2,6)
+contour( squeeze(CON(6,:,:) ) ) 
+title( sprintf('PROTOTYPE 6' ))
+subplot(6,2,7)
+contour( squeeze(CON(7,:,:) ) ) 
+title( sprintf('PROTOTYPE 7' ))
+subplot(6,2,8)
+contour( squeeze(CON(8,:,:) ) ) 
+title( sprintf('PROTOTYPE 8' ))
+subplot(6,2,9)
+contour( squeeze(CON(9,:,:) ) ) 
+title( sprintf('PROTOTYPE 9' ))
+subplot(6,2,10)
+contour( squeeze(CON(10,:,:) ) ) 
+title( sprintf('PROTOTYPE 10' ))
+subplot(6,2,11)
+contour( squeeze(CON(11,:,:) ) ) 
+title( sprintf('PROTOTYPE|train 11' ))
+
+%% View the prototype : OFF
 figure
 subplot(6,2,1)
 contour( squeeze(C(1,:,:) ) ) 
