@@ -1,7 +1,7 @@
 %% colleen's working progress 
-% [CIN]=loadaerdat_matlab('DVS128-2017-03-21_penOrientation.aedat');
+[CIN]=loadaerdat_matlab('DVS128-2017-03-21_penOrientation.aedat');
 % [CIN]=loadaerdat_matlab('DVS128-2017-03-21T16-00-20-0700-0.aedat');
-[CIN]=loadaerdat_matlab('DVS128-2017-03-21-short.aedat');
+% [CIN]=loadaerdat_matlab('DVS128-2017-03-21-short.aedat');
 
 % Column 1: timestamps with 1us time tick
 % Columns 2-3: ignore them (they are meant for simulator AERST (see Perez-Carrasco et al, IEEE
@@ -18,7 +18,18 @@ y0 = CIN(:,5);
 xy0 = CIN(:,4:5); 
 P = CIN(:,6);
     
+%% video visualizing the events 
+Events = [x0,y0,P,ts];
+visualize_events(Events); 
+
+%% TRUNCATED video 
+Events = [x0(idxstart:idxend),y0(idxstart:idxend),P(idxstart:idxend),ts(idxstart:idxend)];
+visualize_events(Events); 
+
 %% Truncate video 
+idxstart = 1000 ;
+idxend = 127000 ;
+
 for k=1:size(P,1)
     if P(k) == -1
        P(k) = 0;
@@ -36,17 +47,6 @@ ts_decr = ts(~logical_pol);
 
 res_x = 128;
 res_y = 128;
-
-idxstart = 800 ;
-idxend = 125000 ;
-
-%% video visualizing the events 
-Events = [x0,y0,P,ts];
-visualize_events(Events); 
-
-%% TRUNCATED video 
-Events = [x0(idxstart:idxend),y0(idxstart:idxend),P(idxstart:idxend),ts(idxstart:idxend)];
-visualize_events(Events); 
 
 %% display the data using 3D scatterplot
 % epg (events per graph) = it is associated with the scatterd mode. It
@@ -91,8 +91,7 @@ ymask = y1 >= 62 & y1 <= 66 ;
 %% Build time surfaces for ON / OFF events 
 
 % ON polarity events 
-    Son = nan(128);
-    % SON = zeros(128); 
+    Son = nan(128); 
     ONS=[]; 
     deltaTon = zeros(128);
     ts_prev=0; 
@@ -100,7 +99,7 @@ ymask = y1 >= 62 & y1 <= 66 ;
     x = x_incr+1;
     y = y_incr+1;
     
-    for i = idxstart:ts_incr(end)  %length(ts_incr)/1.25
+    for i = idxstart: length(ts_incr)/1.25
     ts_current = ts_incr(i) ; 
     deltaTon = deltaTon + (ts_current - ts_prev) ; 
     ts_prev = ts_current;
@@ -119,7 +118,7 @@ ymask = y1 >= 62 & y1 <= 66 ;
     x = x_decr+1;
     y = y_decr+1;
     
-    for i = idxstart:ts_decr(end) %length(ts_decr)/1.25
+    for i = idxstart:length(ts_decr)/1.25
     ts_current = ts_decr(i) ; 
     deltaToff = deltaToff + (ts_current - ts_prev) ; 
     ts_prev = ts_current;
@@ -129,18 +128,34 @@ ymask = y1 >= 62 & y1 <= 66 ;
     end
 
 % Display the surface and contounrs for ON and OFF events 
-e=2050; % event snapshot 
+% e=2050; % event snapshot 
+on = size(ONS,3);
+off= size(OFFS,3);
+
 figure
 subplot(2,2,1)
-surf(ONS(:,:,e) )
+surf(ONS(:,:,on) )
 subplot(2,2,2)  
-contour(ONS(:,:,e)) 
+contour(ONS(:,:,on)) 
 title('ON events')
 subplot(2,2,3)
-surf(OFFS(:,:,e) )
+surf(OFFS(:,:,off) )
 subplot(2,2,4)  
-contour(OFFS(:,:,e)) 
+contour(OFFS(:,:,off)) 
 title('OFF events')
+
+
+% figure
+% subplot(2,2,1)
+% surf(ONS(:,:,on) )
+% subplot(2,2,2)  
+% contour(ONS(:,:,on)) 
+% title('ON events')
+% subplot(2,2,3)
+% surf(OFFS(:,:,999) )
+% subplot(2,2,4)  
+% contour(OFFS(:,:,999)) 
+% title('OFF events')
 
 % TODO: visualization. play these in a movie. convert events into time.
 
@@ -156,7 +171,7 @@ title('OFF events')
 % beta = dot(Ck,Si) / (norm(Ck)*norm(Si)) ;  
 % beta = 1 - pdist([Ck;Si],'cosine') ;
 
-Cidx=[10:100:1049]; % N=11 
+Cidx=[idxstart:10:idxstart+100]; % N=10 
 npixels= 128*128; 
 Cn = reshape( permute( ONS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
 CON = zeros(size(Cn));
@@ -164,7 +179,7 @@ pk = 0;
 beta = -1;
 
 % ON polarity events loop
-for i=idxstart:idxend
+for i=idxstart: on
 % for i=999:10:1999
 
     test_on_event = reshape(ONS(:,:,i),[1,npixels]); % Si 
@@ -204,18 +219,19 @@ subplot(1,2,2)
 contour( squeeze(CON(idx(1),:,:) ) ) 
 title( sprintf('PROTOTYPE|train %d', idx(1)) )
 
-
-
 %% OFF polarity events loop
 
-Cidx=[10:100:1049]; % N=11 
+Cidx=[idxstart:10:idxstart+100]; % N=10
+% Cidx=[idxstart:idxstart+10]; % this still captured the line ... 
 npixels = 128*128; % 16384
-Cn = reshape( permute( OFFS(:,:,Cidx(:)), [3 1 2] ), [length(Cidx), npixels]);
+aa=permute( OFFS(:,:,Cidx(:)), [3 1 2] );
+Cn = reshape( aa, [length(Cidx), npixels]);
+
 COFF = zeros(size(Cn));
 pk = 0; 
 beta = -1;  
 
-for i=idxstart:idxend
+for i= idxstart : off
  
    
     test_off_event = reshape(OFFS(:,:,i),[1,npixels]);
@@ -234,14 +250,15 @@ for i=idxstart:idxend
     COFF(idx(1),:) = Ck; 
     COFF=reshape(COFF,[length(Cidx),128,128]);
      
-    idx(1)
+% idx(1)
 % figure
 % subplot(1,2,1)
 % contour(OFFS(:,:,i) )
 % title('test')
 % subplot(1,2,2)  
-% contour( squeeze(C(idx(1),:,:) ) ) 
+% contour( squeeze(COFF(idx(1),:,:) ) ) 
 % title('PROTOTYPE|train') 
+
 end
 
 figure
@@ -254,76 +271,99 @@ title( sprintf('PROTOTYPE|train %d', idx(1)) )
 
 %% View the prototype : ON 
 figure
-subplot(6,2,1)
+subplot(ceil(length(Cidx)/2),2,1)
 contour( squeeze(CON(1,:,:) ) ) 
-title( sprintf('PROTOTYPE 1' ))
-subplot(6,2,2)
+title( sprintf('ON PROTOTYPE 1' ))
+subplot(ceil(length(Cidx)/2),2,2)
 contour( squeeze(CON(2,:,:) ) ) 
-title( sprintf('PROTOTYPE 2' ))
-subplot(6,2,3)
+title( sprintf('ON PROTOTYPE 2' ))
+subplot(ceil(length(Cidx)/2),2,3)
 contour( squeeze(CON(3,:,:) ) ) 
-title( sprintf('PROTOTYPE 3'))
-subplot(6,2,4)
+title( sprintf('ON PROTOTYPE 3'))
+subplot(ceil(length(Cidx)/2),2,4)
 contour( squeeze(CON(4,:,:) ) ) 
-title( sprintf('PROTOTYPE 4' ))
-subplot(6,2,5)
+title( sprintf('ON PROTOTYPE 4' ))
+subplot(ceil(length(Cidx)/2),2,5)
 contour( squeeze(CON(5,:,:) ) ) 
-title( sprintf('PROTOTYPE 5' ))
-subplot(6,2,6)
+title( sprintf('ON PROTOTYPE 5' ))
+subplot(ceil(length(Cidx)/2),2,6)
 contour( squeeze(CON(6,:,:) ) ) 
-title( sprintf('PROTOTYPE 6' ))
-subplot(6,2,7)
+title( sprintf('ON PROTOTYPE 6' ))
+subplot(ceil(length(Cidx)/2),2,7)
 contour( squeeze(CON(7,:,:) ) ) 
-title( sprintf('PROTOTYPE 7' ))
-subplot(6,2,8)
+title( sprintf('ON PROTOTYPE 7' ))
+subplot(ceil(length(Cidx)/2),2,8)
 contour( squeeze(CON(8,:,:) ) ) 
-title( sprintf('PROTOTYPE 8' ))
-subplot(6,2,9)
+title( sprintf('ON PROTOTYPE 8' ))
+subplot(ceil(length(Cidx)/2),2,9)
 contour( squeeze(CON(9,:,:) ) ) 
-title( sprintf('PROTOTYPE 9' ))
-subplot(6,2,10)
+title( sprintf('ON PROTOTYPE 9' ))
+subplot(ceil(length(Cidx)/2),2,10)
 contour( squeeze(CON(10,:,:) ) ) 
-title( sprintf('PROTOTYPE 10' ))
-subplot(6,2,11)
-contour( squeeze(CON(11,:,:) ) ) 
-title( sprintf('PROTOTYPE|train 11' ))
+title( sprintf('ON PROTOTYPE 10' ))
+% subplot(6,2,11)
+% contour( squeeze(CON(11,:,:) ) ) 
+% title( sprintf('PROTOTYPE|train 11' ))
 
 %% View the prototype : OFF
 figure
-subplot(6,2,1)
-contour( squeeze(C(1,:,:) ) ) 
-title( sprintf('PROTOTYPE 1' ))
-subplot(6,2,2)
-contour( squeeze(C(2,:,:) ) ) 
-title( sprintf('PROTOTYPE 2' ))
-subplot(6,2,3)
-contour( squeeze(C(3,:,:) ) ) 
-title( sprintf('PROTOTYPE 3'))
-subplot(6,2,4)
-contour( squeeze(C(4,:,:) ) ) 
-title( sprintf('PROTOTYPE 4' ))
-subplot(6,2,5)
-contour( squeeze(C(5,:,:) ) ) 
-title( sprintf('PROTOTYPE 5' ))
-subplot(6,2,6)
-contour( squeeze(C(6,:,:) ) ) 
-title( sprintf('PROTOTYPE 6' ))
-subplot(6,2,7)
-contour( squeeze(C(7,:,:) ) ) 
-title( sprintf('PROTOTYPE 7' ))
-subplot(6,2,8)
-contour( squeeze(C(8,:,:) ) ) 
-title( sprintf('PROTOTYPE 8' ))
-subplot(6,2,9)
-contour( squeeze(C(9,:,:) ) ) 
-title( sprintf('PROTOTYPE 9' ))
-subplot(6,2,10)
-contour( squeeze(C(10,:,:) ) ) 
-title( sprintf('PROTOTYPE 10' ))
-subplot(6,2,11)
-contour( squeeze(C(11,:,:) ) ) 
-title( sprintf('PROTOTYPE|train 11' ))
+subplot(ceil(length(Cidx)/2),2,1)
+contour( squeeze(COFF(1,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 1' ))
+subplot(ceil(length(Cidx)/2),2,2)
+contour( squeeze(COFF(2,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 2' ))
+subplot(ceil(length(Cidx)/2),2,3)
+contour( squeeze(COFF(3,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 3'))
+subplot(ceil(length(Cidx)/2),2,4)
+contour( squeeze(COFF(4,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 4' ))
+subplot(ceil(length(Cidx)/2),2,5)
+contour( squeeze(COFF(5,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 5' ))
+subplot(ceil(length(Cidx)/2),2,6)
+contour( squeeze(COFF(6,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 6' ))
+subplot(ceil(length(Cidx)/2),2,7)
+contour( squeeze(COFF(7,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 7' ))
+subplot(ceil(length(Cidx)/2),2,8)
+contour( squeeze(COFF(8,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 8' ))
+subplot(ceil(length(Cidx)/2),2,9)
+contour( squeeze(COFF(9,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 9' ))
+subplot(ceil(length(Cidx)/2),2,10)
+contour( squeeze(COFF(10,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 10' ))
+% subplot(6,2,11)
+% contour( squeeze(C(11,:,:) ) ) 
+% title( sprintf('PROTOTYPE|train 11' ))
 
+%% INITIAL prototypes : 
+figure; subplot(ceil(length(Cidx)/2),2,1); contour( ONS(:,:,Cidx(1)))
+subplot(ceil(length(Cidx)/2),2,2); contour( ONS(:,:,Cidx(2)))
+subplot(ceil(length(Cidx)/2),2,3); contour( ONS(:,:,Cidx(3)))
+subplot(ceil(length(Cidx)/2),2,4); contour( ONS(:,:,Cidx(4)))
+subplot(ceil(length(Cidx)/2),2,5); contour( ONS(:,:,Cidx(5)))
+subplot(ceil(length(Cidx)/2),2,6); contour( ONS(:,:,Cidx(6)))
+subplot(ceil(length(Cidx)/2),2,7); contour( ONS(:,:,Cidx(7)))
+subplot(ceil(length(Cidx)/2),2,8); contour( ONS(:,:,Cidx(8)))
+subplot(ceil(length(Cidx)/2),2,9); contour( ONS(:,:,Cidx(9)))
+subplot(ceil(length(Cidx)/2),2,10); contour( ONS(:,:,Cidx(10)))
+
+ 
+figure; subplot(ceil(length(Cidx)/2),2,1); contour( OFFS(:,:,Cidx(1)))
+subplot(ceil(length(Cidx)/2),2,2); contour( OFFS(:,:,Cidx(2)))
+subplot(ceil(length(Cidx)/2),2,3); contour( OFFS(:,:,Cidx(3)))
+subplot(ceil(length(Cidx)/2),2,4); contour( OFFS(:,:,Cidx(4)))
+subplot(ceil(length(Cidx)/2),2,5); contour( OFFS(:,:,Cidx(5)))
+subplot(ceil(length(Cidx)/2),2,6); contour( OFFS(:,:,Cidx(6)))
+subplot(ceil(length(Cidx)/2),2,7); contour( OFFS(:,:,Cidx(7)))
+subplot(ceil(length(Cidx)/2),2,8); contour( OFFS(:,:,Cidx(8)))
+subplot(ceil(length(Cidx)/2),2,9); contour( OFFS(:,:,Cidx(9)))
+subplot(ceil(length(Cidx)/2),2,10); contour( OFFS(:,:,Cidx(10)))
 
 %% ... SCRATCH code ....
 % TODO: change it so that it takes incoming data one by one 
