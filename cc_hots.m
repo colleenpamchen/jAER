@@ -5,11 +5,11 @@
     % Column 3: event polarity [0 off | 1 on]
     % Column 4: timestamps with 1us time tick (microseconds?miliseconds? how to convert to seconds?)
     % Events = [ x-coordinate , y-coordinate , polarity , timestamp (microseconds) ]
-Events = load('pen_vertical.dvs');
-% Events = load('pen_horizontal.dvs');
-% Events = load('spinner.dvs');
-% Events = load('hand_vertical.dvs');
-% Events = load('hand_horizontal.dvs');
+Events = load('sample_eDVS_data/pen_vertical.dvs');
+% Events = load('sample_eDVS_data/pen_horizontal.dvs');
+% Events = load('sample_eDVS_data/spinner.dvs');
+% Events = load('sample_eDVS_data/hand_vertical.dvs');
+% Events = load('sample_eDVS_data/hand_horizontal.dvs');
     
 %% video visualizing the events 
 visualize_events(Events); 
