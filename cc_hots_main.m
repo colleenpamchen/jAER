@@ -21,7 +21,7 @@ end_video = floor(num_events/batchsize) ;
 
 
 idx=[1:batchsize];
-for i = 1:   end_video
+for i = 1:2  % end_video
     data = Events(idx,:); 
 %     visualize_events(data); 
     
@@ -33,6 +33,16 @@ for i = 1:   end_video
 %     pause 
 
 end
+
+
+bf=2;
+ck = squeeze(COFF(10,:,:));
+[W,h]=nnmf(ck,bf);
+imagesc(W)
+
+
+
+
 
 
 
