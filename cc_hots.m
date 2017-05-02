@@ -29,3 +29,4 @@ end
 %% image J. fiji. volumetric viewer .....   
 % isosurface()  
 % 
+help isosurface 
