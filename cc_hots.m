@@ -10,9 +10,11 @@ Events2 = load('sample_eDVS_data/pen_horizontal.dvs');
 Events3 = load('sample_eDVS_data/spinner.dvs');
 Events4 = load('sample_eDVS_data/hand_vertical.dvs');
 Events5 = load('sample_eDVS_data/hand_horizontal.dvs');
-    
+% choose a recording to analyze:
+Events = Events1; 
+
 %% video visualizing the events 
-visualize_events(Events); 
+visualize_events(Events); %displaying movement along the correct orientation
 
 %% Batch incoming events: 
 num_events = size(Events,1) ; 

@@ -19,27 +19,115 @@ num_events = size(Events,1) ;
 batchsize = 1000;
 end_video = floor(num_events/batchsize) ;
 
+%% INITIAL prototypes 
+Cidx=[1:10]; % Cn=10
+pixels= 128; 
+npixels= pixels*pixels;  % 16384
+Cn_on = zeros(length(Cidx),npixels);
+Cn_off = zeros(length(Cidx),npixels);
 
-idx=[1:batchsize];
-for i = 1:2  % end_video
-    data = Events(idx,:); 
+%%
+
+tau = 20000 ; % PARAMETER taken from Lagorce et. al. 
+
+eidx=[1:batchsize];
+for i = 1:end_video
+    data = Events(eidx,:); 
 %     visualize_events(data); 
-    
-    [CON, COFF]=hots(data); 
+    [CON, COFF]= hots(data, Cn_on, Cn_off, tau, Cidx) ; 
+            Cn_on = CON;
+            Cn_off = COFF;
 
-
-
-    idx = idx+batchsize; 
+    eidx = eidx+batchsize; 
 %     pause 
 
 end
 
+
+%% View the accum. prototype : ON 
+pCON=reshape(CON,[length(idx),128,128]); %for plotting/displaying purpose 
+figure
+subplot(ceil(length(Cidx)/2),2,1)
+contour( squeeze(pCON(1,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 1' ))
+subplot(ceil(length(Cidx)/2),2,2)
+contour( squeeze(pCON(2,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 2' ))
+subplot(ceil(length(Cidx)/2),2,3)
+contour( squeeze(pCON(3,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 3'))
+subplot(ceil(length(Cidx)/2),2,4)
+contour( squeeze(pCON(4,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 4' ))
+subplot(ceil(length(Cidx)/2),2,5)
+contour( squeeze(pCON(5,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 5' ))
+subplot(ceil(length(Cidx)/2),2,6)
+contour( squeeze(pCON(6,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 6' ))
+subplot(ceil(length(Cidx)/2),2,7)
+contour( squeeze(pCON(7,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 7' ))
+subplot(ceil(length(Cidx)/2),2,8)
+contour( squeeze(pCON(8,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 8' ))
+subplot(ceil(length(Cidx)/2),2,9)
+contour( squeeze(pCON(9,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 9' ))
+subplot(ceil(length(Cidx)/2),2,10)
+contour( squeeze(pCON(10,:,:) ) ) 
+title( sprintf('ON PROTOTYPE 10' ))
+suptitle('ON polarity Prototypes')
+
+% View the prototype : OFF
+pCOFF=reshape(COFF,[length(idx),128,128]);
+figure
+subplot(ceil(length(Cidx)/2),2,1)
+contour( squeeze(pCOFF(1,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 1' ))
+subplot(ceil(length(Cidx)/2),2,2)
+contour( squeeze(pCOFF(2,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 2' ))
+subplot(ceil(length(Cidx)/2),2,3)
+contour( squeeze(pCOFF(3,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 3'))
+subplot(ceil(length(Cidx)/2),2,4)
+contour( squeeze(pCOFF(4,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 4' ))
+subplot(ceil(length(Cidx)/2),2,5)
+contour( squeeze(pCOFF(5,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 5' ))
+subplot(ceil(length(Cidx)/2),2,6)
+contour( squeeze(pCOFF(6,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 6' ))
+subplot(ceil(length(Cidx)/2),2,7)
+contour( squeeze(pCOFF(7,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 7' ))
+subplot(ceil(length(Cidx)/2),2,8)
+contour( squeeze(pCOFF(8,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 8' ))
+subplot(ceil(length(Cidx)/2),2,9)
+contour( squeeze(pCOFF(9,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 9' ))
+subplot(ceil(length(Cidx)/2),2,10)
+contour( squeeze(pCOFF(10,:,:) ) ) 
+title( sprintf('OFF PROTOTYPE 10' ))
+suptitle('OFF polarity Prototypes')
+
+
+
+%%
 
 bf=2;
 ck = squeeze(COFF(10,:,:));
 [W,h]=nnmf(ck,bf);
 imagesc(W)
 
+
+%% image J. fiji. volumetric viewer .....   
+% isosurface()  
+% 
+help isosurface 
 
 
 
