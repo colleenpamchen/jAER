@@ -163,6 +163,7 @@ off= length(ts_decr);
 % title('OFF events')
 
 %% INITIAL prototypes : 
+
 % figure; 
 % subplot(ceil(length(Cidx)/2),2,1); contour( ONS(:,:,Cidx(1)))
 % subplot(ceil(length(Cidx)/2),2,2); contour( ONS(:,:,Cidx(2)))
@@ -190,6 +191,7 @@ off= length(ts_decr);
 % suptitle('OFF polarity Initial prototypes')
 
 % %% View the accum. prototype : ON 
+
 % pCON=reshape(CON,[length(idx),128,128]); %for plotting/displaying purpose 
 % figure
 % subplot(ceil(length(Cidx)/2),2,1)
@@ -258,5 +260,6 @@ off= length(ts_decr);
 % contour( squeeze(pCOFF(10,:,:) ) ) 
 % title( sprintf('OFF PROTOTYPE 10' ))
 % suptitle('OFF polarity Prototypes')
+
 
 end % end of function 
