@@ -50,6 +50,7 @@ function [ CON, COFF ] = hots(events,Cn_on,Cn_off,tau,Cidx)
         Son = exp( -(deltaTon)/tau )  ;  
         ONS(:,:,i) = Son ;
     end
+   
 %% PROTOTYPE construction using nearest neighbor and distance metrics 
 if sum(Cn_on(:)) == 0
     % INITIALIZE prototypes: 
