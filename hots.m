@@ -1,4 +1,4 @@
-function [ CON, COFF ] = hots(events,Cn_on,Cn_off,tau,Cidx)
+function [ CON, COFF, ONS, OFFS ] = hots(events,Cn_on,Cn_off,tau,Cidx)
 % HOTS function takes input arguments: 
 % (1) parsed DVS events following the matrix format refered
 % to in (a). 
